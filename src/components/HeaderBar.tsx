@@ -174,8 +174,8 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
               onChange={(e) => setInputUrl(e.target.value)}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
-              placeholder="ابحث عبر DuckDuckGo أو أدخل عنوان موقع..."
-              className="flex-1 bg-transparent border-none text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none min-w-0 font-sans"
+              placeholder="🔍 ابحث أو أدخل عنوان موقع..."
+              className="flex-1 bg-transparent border-none text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none min-w-0 font-sans px-0.5"
               dir="auto"
             />
 

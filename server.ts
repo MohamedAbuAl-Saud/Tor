@@ -34,10 +34,10 @@ interface WiresharkPacketLog {
   sanitizedUrl?: string;
   source: string;
   destination: string;
-  sourceIp: string;
-  sourcePort: number;
-  destIp: string;
-  destPort: number;
+  sourceIp?: string;
+  sourcePort?: number;
+  destIp?: string;
+  destPort?: number;
   protocol: 'HTTP' | 'HTTPS' | 'SOCKS5' | 'TOR' | 'DNS' | 'TCP';
   status: number;
   statusText: string;
@@ -502,6 +502,16 @@ app.post('/api/gateway/fetch', async (req: Request, res: Response) => {
 
     const contentType = finalResponse.headers.get('content-type') || 'text/html';
     const isHtml = contentType.includes('text/html') || contentType.includes('application/xhtml+xml');
+    
+    const rawText = await finalResponse.text();
+    let processedHtml = rawText;
+    let sanitizationEvents: string[] = [];
+
+    // If not HTML, wrap in basic HTML structure so the bridge script can function
+    if (!isHtml) {
+      processedHtml = `<!DOCTYPE html><html><body><pre style="white-space: pre-wrap; font-family: sans-serif;">${processedHtml.replace(/</g, '&lt;')}</pre></body></html>`;
+    }
+
     const durationMs = Date.now() - startTime;
 
     // Check downloads
@@ -552,10 +562,6 @@ app.post('/api/gateway/fetch', async (req: Request, res: Response) => {
         durationMs,
       });
     }
-
-    const rawText = await finalResponse.text();
-    let processedHtml = rawText;
-    const sanitizationEvents: string[] = [];
 
     // Universal Bridge Script with Storage polyfill for opaque origin srcDoc
     const bridgeScript = `
@@ -655,7 +661,7 @@ app.post('/api/gateway/fetch', async (req: Request, res: Response) => {
         .replace(/<meta[^>]+http-equiv=["']Content-Security-Policy["'][^>]+frame-ancestors[^>]*>/gi, '');
 
       // In search results, rewrite any DuckDuckGo redirect wrappers to direct destination links
-      processedHtml = processedHtml.replace(/href=["'](?:\/\/|https?:\/\/)(?:[a-z0-9-]+\.)?duckduckgo\.com\/l\/\?uddg=([^"']+)["']/gi, (_match, uddg) => {
+      processedHtml = processedHtml.replace(/href=["'](?:\/\/|https?:\/\/)(?:[a-z0-9-]+\.)?duckduckgo\.com\/l\/\?uddg=([^"']+)["']/gi, (_match: string, uddg: string) => {
         try {
           return `href="${decodeURIComponent(uddg)}"`;
         } catch {

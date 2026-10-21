@@ -74,6 +74,7 @@ export interface Translations {
   testResults: string;
   fullPageSettings: string;
   siteSettings: string;
+  [key: string]: string;
 }
 
 export const translations: Record<SupportedLanguage, Translations> = {

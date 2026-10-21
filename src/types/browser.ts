@@ -1,4 +1,4 @@
-export type SafeModeType = 'javascript'; // JavaScript is permanently active per user request
+export type SafeModeType = 'javascript' | 'safe'; // JavaScript active by default, with safe mode option
 
 export type SearchEngine = 'duckduckgo'; // Exclusive sole search engine per user request
 

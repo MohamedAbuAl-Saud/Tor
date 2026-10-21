@@ -94,6 +94,10 @@ export async function getActiveProfile(): Promise<ProfileSettings> {
         micBlocked: profile.micBlocked ?? true,
         geoBlocked: profile.geoBlocked ?? true,
         popupsBlocked: profile.popupsBlocked ?? true,
+        webrtcBlocked: profile.webrtcBlocked ?? true,
+        clipboardBlocked: profile.clipboardBlocked ?? true,
+        notificationsBlocked: profile.notificationsBlocked ?? true,
+        autoplayBlocked: profile.autoplayBlocked ?? true,
       };
     }
   }
@@ -121,6 +125,10 @@ export async function getActiveProfile(): Promise<ProfileSettings> {
     micBlocked: true,
     geoBlocked: true,
     popupsBlocked: true,
+    webrtcBlocked: true,
+    clipboardBlocked: true,
+    notificationsBlocked: true,
+    autoplayBlocked: true,
   };
 
   await saveProfile(initialProfile);
@@ -161,6 +169,10 @@ export async function resetProfileId(): Promise<ProfileSettings> {
     micBlocked: true,
     geoBlocked: true,
     popupsBlocked: true,
+    webrtcBlocked: true,
+    clipboardBlocked: true,
+    notificationsBlocked: true,
+    autoplayBlocked: true,
   };
 
   await saveProfile(newProfile);

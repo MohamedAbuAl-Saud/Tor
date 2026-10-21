@@ -186,7 +186,7 @@ export const BurpInterceptModal: React.FC<BurpInterceptModalProps> = ({
               title="إسقاط الطلب وإلغاء الإرسال"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Drop (إسقاط)</span>
+              <span>إسقاط</span>
             </button>
             <button
               onClick={handleForwardClick}
@@ -194,7 +194,7 @@ export const BurpInterceptModal: React.FC<BurpInterceptModalProps> = ({
               title="إرسال الطلب بعد التعديل"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Forward (تمرير)</span>
+              <span>تمرير</span>
             </button>
             <button
               onClick={onDisableIntercept}
@@ -352,7 +352,7 @@ export const BurpInterceptModal: React.FC<BurpInterceptModalProps> = ({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-700">
-                  Request Body (محتوى الحمولة والطلب):
+                  حمولة الطلب (Request Body / JSON / Payload - يدعم GET, POST والتعديل والتنفيذ):
                 </span>
                 <div className="flex items-center gap-2">
                   <button

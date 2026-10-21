@@ -125,15 +125,10 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
                 type="submit"
                 className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl transition-colors shrink-0 shadow-2xs"
               >
-                بحث
+                <Search className="w-4 h-4" />
               </button>
             </div>
           </form>
-          <div className="text-center">
-            <span className="text-[11px] text-slate-400">
-              محرك البحث الرئيسي والوحيد: <strong className="text-slate-700">DuckDuckGo</strong> · خصوصية تامة بدون ملفات تعريف
-            </span>
-          </div>
         </div>
 
         {/* Tor Daemon Status Banner (Real live status) */}
@@ -182,7 +177,7 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
                 className="text-indigo-600 hover:text-indigo-700 font-bold flex items-center gap-1"
               >
                 <Terminal className="w-3.5 h-3.5" />
-                <span>سجلات اتصالات واير شارك &rarr;</span>
+                <span>سجلات اتصال &rarr;</span>
               </button>
             </div>
 
@@ -192,98 +187,6 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
             >
               {t.runSelfTest} &rarr;
             </button>
-          </div>
-        </div>
-
-        {/* Quick Access Tiles */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-3 px-1">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              {t.quickAccess}
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {QUICK_ACCESS_SITES.map((site) => (
-              <button
-                key={site.url}
-                onClick={() => onNavigate(site.url)}
-                className="flex flex-col text-left p-3.5 bg-white rounded-2xl border border-slate-200/90 hover:border-indigo-400 hover:shadow-xs transition-all group"
-              >
-                <div className="flex items-center gap-2.5 mb-2">
-                  {site.isDuck ? (
-                    <div className="p-1 rounded-lg bg-orange-50 border border-orange-100 shrink-0">
-                      <DuckLogo className="w-5 h-5" />
-                    </div>
-                  ) : (
-                    <div className="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
-                      {site.badge || site.title.charAt(0)}
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <span className="text-xs font-bold text-slate-800 block truncate group-hover:text-indigo-600 transition-colors">
-                      {site.title}
-                    </span>
-                    <span className="text-[10px] text-slate-400 block truncate">
-                      {site.category}
-                    </span>
-                  </div>
-                </div>
-                <p className="text-[11px] text-slate-500 line-clamp-2 mt-auto leading-snug">
-                  {site.desc}
-                </p>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Privacy & Hardware Permissions Card */}
-        <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              {t.privacyDashboard} & الأذونات
-            </h2>
-            <button
-              onClick={onOpenSettings}
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
-            >
-              فتح الإعدادات الشاملة &rarr;
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">حالة الجافاسكريبت</span>
-              <span className="font-bold text-indigo-700 flex items-center gap-1 mt-0.5">
-                <ShieldAlert className="w-3.5 h-3.5 text-indigo-600" />
-                مفعلة تلقائياً (JS Active)
-              </span>
-              <span className="text-[11px] text-slate-500 mt-1 block">
-                تصفح تفاعلي كامل، مع إمكانية التعطيل
-              </span>
-            </div>
-
-            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">قفل الكاميرا والعتاد</span>
-              <span className="font-bold text-rose-700 flex items-center gap-1 mt-0.5">
-                <Camera className="w-3.5 h-3.5 text-rose-600" />
-                الكاميرا مقفلة ومحظورة
-              </span>
-              <span className="text-[11px] text-slate-500 mt-1 block">
-                حظر التجسس وفتح الكاميرا
-              </span>
-            </div>
-
-            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">حماية SSRF والبوابة</span>
-              <span className="font-bold text-slate-800 flex items-center gap-1 mt-0.5">
-                <Lock className="w-3.5 h-3.5 text-emerald-600" />
-                حظر الشبكات الداخلية
-              </span>
-              <span className="text-[11px] text-slate-500 mt-1 block">
-                حظر 127.0.0.1 والبيانات السحابية
-              </span>
-            </div>
           </div>
         </div>
       </div>
@@ -401,7 +304,10 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
           className="w-full h-full border-none bg-white absolute top-0 left-0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals"
+          onLoad={() => console.log('Iframe loaded content')}
+          onError={(e) => console.error('Iframe error:', e)}
         />
+
       </div>
     </div>
   );
