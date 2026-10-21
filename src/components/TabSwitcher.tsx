@@ -1,7 +1,8 @@
 import React from 'react';
-import { Plus, X, Shield, ShieldAlert, Globe, Trash2 } from 'lucide-react';
+import { Plus, X, Globe, Trash2 } from 'lucide-react';
 import { Tab } from '../types/browser';
 import { Translations } from '../utils/i18n';
+import { SearchEngineLogos } from './SearchLogos';
 
 interface TabSwitcherProps {
   isOpen: boolean;
@@ -27,6 +28,51 @@ export const TabSwitcher: React.FC<TabSwitcherProps> = ({
   onClose,
 }) => {
   if (!isOpen) return null;
+
+  const DuckLogo = SearchEngineLogos.duckduckgo;
+
+  const getTabIcon = (tab: Tab) => {
+    if (tab.favicon) {
+      return (
+        <img 
+          src={tab.favicon} 
+          alt="" 
+          className="w-4 h-4 rounded-md object-contain shrink-0" 
+          onError={(e) => {
+            (e.target as HTMLElement).style.display = 'none';
+          }}
+        />
+      );
+    }
+
+    if (tab.url.includes('duckduckgo.com') || tab.url.includes('?q=')) {
+      return <DuckLogo className="w-4 h-4 shrink-0" />;
+    }
+
+    if (tab.url.startsWith('http')) {
+      try {
+        const domain = new URL(tab.url).hostname;
+        return (
+          <img 
+            src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+            alt=""
+            className="w-4 h-4 rounded-md object-contain shrink-0"
+            onError={(e) => {
+              (e.target as HTMLElement).style.display = 'none';
+            }}
+          />
+        );
+      } catch {}
+    }
+
+    return (
+      <img 
+        src="/SM.jpg" 
+        alt="" 
+        className="w-4 h-4 rounded-full object-cover shrink-0" 
+      />
+    );
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex flex-col justify-end sm:justify-center p-2 sm:p-6 transition-all animate-in fade-in duration-150">
@@ -73,7 +119,6 @@ export const TabSwitcher: React.FC<TabSwitcherProps> = ({
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {tabs.map((tab) => {
             const isActive = tab.id === activeTabId;
-            const isSafe = tab.safeMode === 'safe';
 
             return (
               <div
@@ -88,15 +133,13 @@ export const TabSwitcher: React.FC<TabSwitcherProps> = ({
                     : 'border-slate-200 hover:border-slate-300'
                 }`}
               >
-                {/* Top card bar */}
+                {/* Top card bar with site logo */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <img 
-                      src="/SM.jpg" 
-                      alt="" 
-                      className="w-4 h-4 rounded-full object-cover shrink-0" 
-                    />
-                    <span className="font-semibold text-slate-800 text-xs sm:text-sm truncate">
+                    <div className="p-1 rounded-lg bg-slate-100 shrink-0">
+                      {getTabIcon(tab)}
+                    </div>
+                    <span className="font-bold text-slate-800 text-xs sm:text-sm truncate">
                       {tab.title || t.newTab}
                     </span>
                   </div>
@@ -120,7 +163,7 @@ export const TabSwitcher: React.FC<TabSwitcherProps> = ({
                     {tab.url || 'sm://home'}
                   </p>
                   <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
-                    {tab.content ? 'Cached document snapshot ready' : 'Quick Access and Privacy Hub'}
+                    {tab.content ? 'تم تحميل المستند والمحتوى بنجاح' : 'صفحة البداية وبوابة الخصوصية'}
                   </p>
                 </div>
 
@@ -132,22 +175,16 @@ export const TabSwitcher: React.FC<TabSwitcherProps> = ({
                         <Globe className="w-3 h-3 text-purple-600" />
                         <span>Tor .onion</span>
                       </span>
-                    ) : isSafe ? (
-                      <span className="flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-medium">
-                        <Shield className="w-3 h-3 text-emerald-600" />
-                        <span>Safe Document</span>
-                      </span>
                     ) : (
-                      <span className="flex items-center gap-1 text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full font-medium">
-                        <ShieldAlert className="w-3 h-3 text-amber-600" />
-                        <span>JS Allowed</span>
+                      <span className="flex items-center gap-1 text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full font-medium">
+                        <span>JavaScript Active</span>
                       </span>
                     )}
                   </div>
 
                   {isActive && (
                     <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">
-                      Active
+                      التبويب النشط
                     </span>
                   )}
                 </div>
@@ -158,12 +195,12 @@ export const TabSwitcher: React.FC<TabSwitcherProps> = ({
 
         {/* Footer */}
         <div className="px-5 py-3 bg-white border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
-          <span>Click any card to switch</span>
+          <span>انقر على أي بطاقة للتبديل إليها</span>
           <button
             onClick={onClose}
             className="text-slate-700 hover:text-slate-900 font-medium px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
           >
-            Done
+            إغلاق
           </button>
         </div>
       </div>

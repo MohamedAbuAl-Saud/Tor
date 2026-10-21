@@ -1,8 +1,10 @@
-export type SafeModeType = 'safe' | 'javascript';
+export type SafeModeType = 'javascript'; // JavaScript is permanently active per user request
 
-export type SearchEngine = 'duckduckgo' | 'searxng' | 'brave' | 'startpage';
+export type SearchEngine = 'duckduckgo'; // Exclusive sole search engine per user request
 
 export type SupportedLanguage = 'en' | 'ar' | 'ru' | 'fr' | 'de' | 'ja' | 'ko' | 'zh';
+
+export type FullPageView = 'browser' | 'settings' | 'history' | 'bookmarks' | 'downloads' | 'inspector' | 'privacy' | 'audit' | 'selftest';
 
 export interface Tab {
   id: string;
@@ -38,6 +40,7 @@ export interface HistoryItem {
   id: string;
   url: string;
   title: string;
+  favicon?: string;
   visitedAt: number;
   profileId: string;
   isPrivate: boolean;
@@ -61,7 +64,7 @@ export interface DownloadItem {
   createdAt: number;
   status: 'completed' | 'failed' | 'downloading';
   error?: string;
-  blobKey: string; // key in IndexedDB files store
+  blobKey: string;
 }
 
 export interface BrowserCookie {
@@ -82,6 +85,9 @@ export interface SitePermission {
   domain: string;
   javascriptAllowed: boolean;
   cookiesAllowed: boolean;
+  cameraAllowed: boolean;
+  micAllowed: boolean;
+  geoAllowed: boolean;
   updatedAt: number;
 }
 
@@ -100,6 +106,15 @@ export interface ProfileSettings {
   clearOnExit: boolean;
   torSocksHost: string;
   torSocksPort: number;
+  // Hardware Privacy Controls & Extended Permissions
+  cameraBlocked: boolean; // default true (locked)
+  micBlocked: boolean;    // default true (locked)
+  geoBlocked: boolean;    // default true (locked)
+  popupsBlocked: boolean; // default true
+  webrtcBlocked: boolean; // default true (prevents IP leaks)
+  clipboardBlocked: boolean; // default true (prevents reading clipboard)
+  notificationsBlocked: boolean; // default true
+  autoplayBlocked: boolean; // default true
 }
 
 export interface TorStatusResponse {
@@ -117,33 +132,40 @@ export interface TorStatusResponse {
 
 export interface NetworkLogEntry {
   id: string;
+  frameNumber: number;
   timestamp: number;
   method: string;
   url: string;
-  sanitizedUrl: string;
+  sanitizedUrl?: string;
+  source: string;
+  destination: string;
+  sourceIp: string;
+  sourcePort: number;
+  destIp: string;
+  destPort: number;
+  protocol: 'HTTP' | 'HTTPS' | 'SOCKS5' | 'TOR' | 'DNS' | 'TCP';
   status: number;
   statusText: string;
   durationMs: number;
   contentType: string;
   contentLength: number;
   isTorRouted: boolean;
-  safeMode: SafeModeType;
-  redirects: string[];
-  sanitizationEvents: string[];
-  tlsStatus: string;
-  headers: Record<string, string>;
+  safeMode: boolean;
+  redirects?: string[];
+  sanitizationEvents?: string[];
+  requestHeaders: Record<string, string>;
+  responseHeaders: Record<string, string>;
+  requestBody?: string;
+  hexDump?: string;
   blockedReason?: string;
 }
 
-export interface DiagnosticsReport {
+export interface InterceptedRequest {
+  id: string;
   timestamp: number;
-  osInfo: string;
-  nodeVersion: string;
-  torStatus: TorStatusResponse;
-  networkLogsCount: number;
-  activeProfileId: string;
-  storageEstimate?: {
-    quota: number;
-    usage: number;
-  };
+  url: string;
+  method: string;
+  headers: Record<string, string>;
+  body?: string;
+  status: 'paused' | 'forwarded' | 'dropped';
 }

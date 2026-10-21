@@ -1,7 +1,7 @@
 import { Bookmark, BrowserCookie, DownloadItem, HistoryItem, ProfileSettings, SearchHistoryItem, SitePermission } from '../types/browser';
 
 const DB_NAME = 'sm_browser_tor_db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export function generateCryptoId(): string {
   const array = new Uint8Array(24);
@@ -85,7 +85,17 @@ export async function getActiveProfile(): Promise<ProfileSettings> {
       req.onerror = () => resolve(undefined);
     });
 
-    if (profile) return profile;
+    if (profile) {
+      // Ensure new properties exist
+      return {
+        ...profile,
+        defaultSafeMode: profile.defaultSafeMode || 'javascript',
+        cameraBlocked: profile.cameraBlocked ?? true,
+        micBlocked: profile.micBlocked ?? true,
+        geoBlocked: profile.geoBlocked ?? true,
+        popupsBlocked: profile.popupsBlocked ?? true,
+      };
+    }
   }
 
   // Create new anonymous profile
@@ -96,17 +106,21 @@ export async function getActiveProfile(): Promise<ProfileSettings> {
     profileId: newProfileId,
     profileName: 'Anonymous Session #' + newProfileId.slice(0, 6),
     createdAt: Date.now(),
-    defaultSafeMode: 'safe',
+    defaultSafeMode: 'javascript', // JavaScript enabled by default per request
     recordHistory: true,
     recordSearchHistory: true,
     isPrivateMode: false,
     searchEngine: 'duckduckgo',
-    language: 'en',
+    language: 'ar', // Set to Arabic as requested in Arabic feedback
     autoSaveDownloadsToBrowser: true,
     blockThirdPartyCookies: true,
     clearOnExit: false,
     torSocksHost: '127.0.0.1',
     torSocksPort: 9050,
+    cameraBlocked: true,
+    micBlocked: true,
+    geoBlocked: true,
+    popupsBlocked: true,
   };
 
   await saveProfile(initialProfile);
@@ -132,17 +146,21 @@ export async function resetProfileId(): Promise<ProfileSettings> {
     profileId: newProfileId,
     profileName: 'Anonymous Session #' + newProfileId.slice(0, 6),
     createdAt: Date.now(),
-    defaultSafeMode: 'safe',
+    defaultSafeMode: 'javascript',
     recordHistory: true,
     recordSearchHistory: true,
     isPrivateMode: false,
     searchEngine: 'duckduckgo',
-    language: 'en',
+    language: 'ar',
     autoSaveDownloadsToBrowser: true,
     blockThirdPartyCookies: true,
     clearOnExit: false,
     torSocksHost: '127.0.0.1',
     torSocksPort: 9050,
+    cameraBlocked: true,
+    micBlocked: true,
+    geoBlocked: true,
+    popupsBlocked: true,
   };
 
   await saveProfile(newProfile);
@@ -438,6 +456,40 @@ export async function deleteDomainCookies(domain: string, profileId: string): Pr
   return new Promise((resolve, reject) => {
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
+  });
+}
+
+// Site Permissions
+export async function getSitePermission(domain: string): Promise<SitePermission | null> {
+  const db = await getDatabase();
+  return new Promise((resolve) => {
+    const tx = db.transaction('sitePermissions', 'readonly');
+    const store = tx.objectStore('sitePermissions');
+    const req = store.get(domain);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => resolve(null);
+  });
+}
+
+export async function saveSitePermission(perm: SitePermission): Promise<void> {
+  const db = await getDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('sitePermissions', 'readwrite');
+    const store = tx.objectStore('sitePermissions');
+    store.put(perm);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function getAllSitePermissions(): Promise<SitePermission[]> {
+  const db = await getDatabase();
+  return new Promise((resolve) => {
+    const tx = db.transaction('sitePermissions', 'readonly');
+    const store = tx.objectStore('sitePermissions');
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => resolve([]);
   });
 }
 

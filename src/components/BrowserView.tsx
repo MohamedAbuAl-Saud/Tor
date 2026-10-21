@@ -1,23 +1,21 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { 
   Shield, 
   ShieldAlert, 
   Globe, 
-  ExternalLink, 
   Search, 
   RotateCw, 
-  AlertTriangle,
-  Lock,
-  Layers,
-  Sparkles,
-  Server,
-  ArrowRight,
-  CheckCircle2,
-  XCircle,
-  HelpCircle
+  AlertTriangle, 
+  Lock, 
+  Terminal, 
+  CheckCircle2, 
+  Server, 
+  Camera,
+  ExternalLink
 } from 'lucide-react';
-import { Tab, TorStatusResponse, ProfileSettings } from '../types/browser';
+import { Tab, TorStatusResponse, ProfileSettings, SearchEngine } from '../types/browser';
 import { Translations } from '../utils/i18n';
+import { SearchEngineLogos, SEARCH_ENGINES_LIST } from './SearchLogos';
 
 interface BrowserViewProps {
   tab: Tab;
@@ -28,54 +26,22 @@ interface BrowserViewProps {
   onNavigate: (url: string) => void;
   onReload: () => void;
   onOpenPrivacyDashboard: () => void;
-  onOpenAiAssistant: () => void;
   onOpenSelfTest: () => void;
+  onOpenInspector: () => void;
+  onOpenSettings: () => void;
   onTestTorCircuit: () => void;
   testingCircuit: boolean;
+  onSelectSearchEngine: (engine: SearchEngine) => void;
+  onToggleTabSafeMode: () => void;
 }
 
 const QUICK_ACCESS_SITES = [
   {
-    title: 'Tor Project Check',
-    url: 'https://check.torproject.org',
-    category: 'Privacy',
-    iconColor: 'bg-purple-600',
-    desc: 'Verify Tor network routing status',
-  },
-  {
-    title: 'DuckDuckGo Onion',
-    url: 'https://duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion',
-    category: 'Search (.onion)',
-    iconColor: 'bg-orange-500',
-    desc: 'Private search engine onion hidden service',
-  },
-  {
-    title: 'ProPublica Onion',
-    url: 'https://p53lf57qovyuvwsc6xnrppyply3vtqm7l6pcobkmyqsiofyeznfu5uqd.onion',
-    category: 'Journalism (.onion)',
-    iconColor: 'bg-slate-800',
-    desc: 'Independent journalism onion site',
-  },
-  {
-    title: 'Wikipedia (Safe)',
-    url: 'https://en.wikipedia.org/wiki/Tor_(network)',
-    category: 'Reference',
-    iconColor: 'bg-blue-600',
-    desc: 'Free encyclopedia entry on Tor',
-  },
-  {
-    title: 'Privacy Guides',
-    url: 'https://www.privacyguides.org',
-    category: 'Security',
-    iconColor: 'bg-emerald-600',
-    desc: 'Security recommendations & threat modeling',
-  },
-  {
-    title: 'Archive.today',
-    url: 'https://archive.today',
-    category: 'Archives',
-    iconColor: 'bg-cyan-700',
-    desc: 'Web page snapshots and permanent records',
+    title: 'DuckDuckGo Search',
+    url: 'https://duckduckgo.com/html/?q=tor+privacy',
+    category: 'Search Engine',
+    desc: 'Pure HTML privacy search results',
+    isDuck: true,
   },
 ];
 
@@ -88,95 +54,93 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
   onNavigate,
   onReload,
   onOpenPrivacyDashboard,
-  onOpenAiAssistant,
   onOpenSelfTest,
+  onOpenInspector,
+  onOpenSettings,
   onTestTorCircuit,
   testingCircuit,
+  onToggleTabSafeMode,
 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [homeSearchQuery, setHomeSearchQuery] = React.useState('');
 
   const isHome = !tab.url || tab.url === 'sm://home' || tab.url === 'about:blank';
-
-  // Listen to navigation messages from iframe
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data && event.data.type === 'SM_BROWSER_NAVIGATE' && event.data.url) {
-        onNavigate(event.data.url);
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [onNavigate]);
+  const DuckLogo = SearchEngineLogos.duckduckgo;
 
   const handleHomeSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!homeSearchQuery.trim()) return;
 
-    let target = homeSearchQuery.trim();
-    if (target.startsWith('http://') || target.startsWith('https://') || target.endsWith('.onion')) {
-      onNavigate(target);
+    const query = homeSearchQuery.trim();
+    if (query.startsWith('http://') || query.startsWith('https://') || query.endsWith('.onion')) {
+      onNavigate(query);
     } else {
-      // Use configured search provider
-      if (profile.searchEngine === 'duckduckgo') {
-        onNavigate(`https://duckduckgo.com/?q=${encodeURIComponent(target)}`);
-      } else if (profile.searchEngine === 'searxng') {
-        onNavigate(`https://searx.be/search?q=${encodeURIComponent(target)}`);
-      } else if (profile.searchEngine === 'brave') {
-        onNavigate(`https://search.brave.com/search?q=${encodeURIComponent(target)}`);
-      } else {
-        onNavigate(`https://www.startpage.com/do/search?query=${encodeURIComponent(target)}`);
-      }
+      onNavigate(`https://duckduckgo.com/html/?q=${encodeURIComponent(query)}`);
     }
   };
 
   if (isHome) {
     return (
-      <div className="flex-1 overflow-y-auto px-4 py-8 sm:py-12 max-w-4xl mx-auto w-full pb-24">
+      <div className="flex-1 overflow-y-auto px-4 py-8 sm:py-10 max-w-4xl mx-auto w-full pb-24">
         {/* Brand Hero */}
-        <div className="flex flex-col items-center text-center mb-8">
+        <div className="flex flex-col items-center text-center mb-6">
           <div className="relative mb-3">
             <img 
               src="/SM.jpg" 
               alt="SM BROWSER TOR" 
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-slate-200/80 shadow-md object-cover" 
+              className="w-20 h-20 sm:w-22 sm:h-22 rounded-full border-2 border-slate-200/90 shadow-md object-cover" 
             />
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-            {t.appName}
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-sans">
+            SM BROWSER TOR
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 max-w-md mt-1 font-sans">
-            {t.tagline}
-          </p>
+          {/* Onion text with authentic Tor purple onion logo next to it */}
+          <div className="inline-flex items-center gap-2 mt-2 px-3 py-1 bg-purple-50 text-purple-900 border border-purple-200 rounded-full text-xs font-bold font-mono shadow-2xs">
+            <svg viewBox="0 0 32 32" className="w-4 h-4 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 3C11 3 5 8 5 16C5 24 11 29 16 29C21 29 27 24 27 16C27 8 21 3 16 3Z" fill="#7D4698"/>
+              <path d="M16 6C12.5 6 8 10 8 16C8 22 12.5 26 16 26C19.5 26 24 22 24 16C24 10 19.5 6 16 6Z" fill="#9357B2"/>
+              <path d="M16 9C14 9 11 12 11 16C11 20 14 23 16 23C18 23 21 20 21 16C21 12 18 9 16 9Z" fill="#A86BC7"/>
+              <path d="M16 12C15 12 13.5 13.5 13.5 16C13.5 18.5 15 20 16 20C17 20 18.5 18.5 18.5 16C18.5 13.5 17 12 16 12Z" fill="#C593DF"/>
+            </svg>
+            <span className="tracking-wide">onion</span>
+          </div>
         </div>
 
-        {/* Central Home Search Box */}
-        <form onSubmit={handleHomeSearch} className="max-w-xl mx-auto mb-8">
-          <div className="relative flex items-center bg-white rounded-2xl shadow-sm border border-slate-200/90 hover:border-indigo-400 p-2 sm:p-2.5 transition-all focus-within:ring-2 focus-within:ring-indigo-100 focus-within:border-indigo-500">
-            <Search className="w-5 h-5 text-slate-400 ms-2 me-3 shrink-0" />
-            <input
-              type="text"
-              value={homeSearchQuery}
-              onChange={(e) => setHomeSearchQuery(e.target.value)}
-              placeholder={t.searchOrEnterAddress}
-              className="flex-1 bg-transparent border-none text-sm text-slate-800 placeholder-slate-400 focus:outline-none"
-              dir="auto"
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl transition-colors shrink-0 shadow-2xs"
-            >
-              Search
-            </button>
+        {/* Central Search Box - Exclusive DuckDuckGo */}
+        <div className="max-w-2xl mx-auto mb-8 space-y-2">
+          <form onSubmit={handleHomeSearch} className="w-full">
+            <div className="relative flex items-center bg-white rounded-2xl shadow-sm border border-slate-200/90 hover:border-indigo-400 p-2 sm:p-2.5 transition-all focus-within:ring-2 focus-within:ring-indigo-100 focus-within:border-indigo-500">
+              <div className="p-1.5 rounded-xl bg-slate-50 me-2 shrink-0">
+                <DuckLogo className="w-6 h-6" />
+              </div>
+              <input
+                type="text"
+                value={homeSearchQuery}
+                onChange={(e) => setHomeSearchQuery(e.target.value)}
+                placeholder="ابحث عبر DuckDuckGo بدون تتبع أو أدخل عنوان موقع..."
+                className="flex-1 bg-transparent border-none text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none min-w-0"
+                dir="auto"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl transition-colors shrink-0 shadow-2xs"
+              >
+                بحث
+              </button>
+            </div>
+          </form>
+          <div className="text-center">
+            <span className="text-[11px] text-slate-400">
+              محرك البحث الرئيسي والوحيد: <strong className="text-slate-700">DuckDuckGo</strong> · خصوصية تامة بدون ملفات تعريف
+            </span>
           </div>
-        </form>
+        </div>
 
         {/* Tor Daemon Status Banner (Real live status) */}
-        <div className="max-w-xl mx-auto mb-8 bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs">
+        <div className="max-w-2xl mx-auto mb-8 bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs">
           <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className={`p-2.5 rounded-xl shrink-0 ${
+            <div className="flex items-start gap-3">
+              <div className={`p-2.5 rounded-2xl shrink-0 ${
                 torStatus?.connected ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
               }`}>
                 {torStatus?.connected ? (
@@ -186,10 +150,10 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
                 )}
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-slate-900">
+                <h2 className="text-sm font-bold text-slate-900">
                   {torStatus?.connected ? t.torConnected : t.torDisconnected}
                 </h2>
-                <p className="text-xs text-slate-500 mt-0.5 font-sans leading-relaxed">
+                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed font-sans">
                   {torStatus?.connected
                     ? `SOCKS5 proxy ready on ${torStatus.host}:${torStatus.port} (Latency: ${torStatus.latencyMs}ms)`
                     : t.torNotDetectedNotice}
@@ -197,28 +161,38 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
               </div>
             </div>
 
-            <button
-              onClick={onTestTorCircuit}
-              disabled={testingCircuit}
-              className="text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 disabled:opacity-50 transition-colors shrink-0"
-            >
-              {testingCircuit ? 'Probing...' : t.testTorCircuit}
-            </button>
-          </div>
-
-          {!torStatus?.connected && (
-            <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span className="font-mono text-[11px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
-                127.0.0.1:9050
-              </span>
-              <button 
-                onClick={onOpenSelfTest}
-                className="text-indigo-600 hover:text-indigo-700 font-semibold text-xs"
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={onTestTorCircuit}
+                disabled={testingCircuit}
+                className="text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 disabled:opacity-50 transition-colors"
               >
-                {t.runSelfTest} &rarr;
+                {testingCircuit ? 'جاري الفحص...' : t.testTorCircuit}
               </button>
             </div>
-          )}
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[11px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                SOCKS5 9050
+              </span>
+              <button
+                onClick={onOpenInspector}
+                className="text-indigo-600 hover:text-indigo-700 font-bold flex items-center gap-1"
+              >
+                <Terminal className="w-3.5 h-3.5" />
+                <span>سجلات اتصالات واير شارك &rarr;</span>
+              </button>
+            </div>
+
+            <button 
+              onClick={onOpenSelfTest}
+              className="text-slate-600 hover:text-slate-900 font-semibold"
+            >
+              {t.runSelfTest} &rarr;
+            </button>
+          </div>
         </div>
 
         {/* Quick Access Tiles */}
@@ -234,14 +208,20 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
               <button
                 key={site.url}
                 onClick={() => onNavigate(site.url)}
-                className="flex flex-col text-left p-3.5 bg-white rounded-2xl border border-slate-200/80 hover:border-slate-300 hover:shadow-xs transition-all group"
+                className="flex flex-col text-left p-3.5 bg-white rounded-2xl border border-slate-200/90 hover:border-indigo-400 hover:shadow-xs transition-all group"
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <div className={`w-7 h-7 rounded-lg ${site.iconColor} text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs`}>
-                    {site.title.charAt(0)}
-                  </div>
+                <div className="flex items-center gap-2.5 mb-2">
+                  {site.isDuck ? (
+                    <div className="p-1 rounded-lg bg-orange-50 border border-orange-100 shrink-0">
+                      <DuckLogo className="w-5 h-5" />
+                    </div>
+                  ) : (
+                    <div className="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                      {site.badge || site.title.charAt(0)}
+                    </div>
+                  )}
                   <div className="min-w-0">
-                    <span className="text-xs font-semibold text-slate-800 block truncate group-hover:text-indigo-600 transition-colors">
+                    <span className="text-xs font-bold text-slate-800 block truncate group-hover:text-indigo-600 transition-colors">
                       {site.title}
                     </span>
                     <span className="text-[10px] text-slate-400 block truncate">
@@ -257,42 +237,51 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
           </div>
         </div>
 
-        {/* Privacy & Architecture Snapshot */}
-        <div className="bg-slate-100/70 rounded-2xl p-4 sm:p-5 border border-slate-200/60">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
-            {t.privacyDashboard}
-          </h2>
+        {/* Privacy & Hardware Permissions Card */}
+        <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              {t.privacyDashboard} & الأذونات
+            </h2>
+            <button
+              onClick={onOpenSettings}
+              className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
+            >
+              فتح الإعدادات الشاملة &rarr;
+            </button>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="bg-white p-3 rounded-xl border border-slate-200/60">
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">Rendering Mode</span>
-              <span className="font-semibold text-emerald-700 flex items-center gap-1 mt-0.5">
-                <Shield className="w-3.5 h-3.5" />
-                Safe Document Mode
+            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+              <span className="text-slate-400 block text-[10px] uppercase font-bold">حالة الجافاسكريبت</span>
+              <span className="font-bold text-indigo-700 flex items-center gap-1 mt-0.5">
+                <ShieldAlert className="w-3.5 h-3.5 text-indigo-600" />
+                مفعلة تلقائياً (JS Active)
               </span>
               <span className="text-[11px] text-slate-500 mt-1 block">
-                Scripts neutralized & CSP locked
+                تصفح تفاعلي كامل، مع إمكانية التعطيل
               </span>
             </div>
 
-            <div className="bg-white p-3 rounded-xl border border-slate-200/60">
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">Anonymous ID</span>
-              <span className="font-mono text-[11px] font-semibold text-slate-800 truncate block mt-0.5" dir="ltr">
-                {profile.profileId.slice(0, 16)}...
+            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+              <span className="text-slate-400 block text-[10px] uppercase font-bold">قفل الكاميرا والعتاد</span>
+              <span className="font-bold text-rose-700 flex items-center gap-1 mt-0.5">
+                <Camera className="w-3.5 h-3.5 text-rose-600" />
+                الكاميرا مقفلة ومحظورة
               </span>
               <span className="text-[11px] text-slate-500 mt-1 block">
-                Crypto-random, no account required
+                حظر التجسس وفتح الكاميرا
               </span>
             </div>
 
-            <div className="bg-white p-3 rounded-xl border border-slate-200/60">
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">Network Gateway</span>
-              <span className="font-semibold text-slate-800 flex items-center gap-1 mt-0.5">
-                <Lock className="w-3.5 h-3.5 text-indigo-600" />
-                SSRF-Protected
+            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+              <span className="text-slate-400 block text-[10px] uppercase font-bold">حماية SSRF والبوابة</span>
+              <span className="font-bold text-slate-800 flex items-center gap-1 mt-0.5">
+                <Lock className="w-3.5 h-3.5 text-emerald-600" />
+                حظر الشبكات الداخلية
               </span>
               <span className="text-[11px] text-slate-500 mt-1 block">
-                Localhost & private ranges blocked
+                حظر 127.0.0.1 والبيانات السحابية
               </span>
             </div>
           </div>
@@ -305,7 +294,6 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
   if (tab.isLoading) {
     return (
       <div className="flex-1 flex flex-col bg-white">
-        {/* Loading progress bar */}
         <div className="w-full bg-slate-100 h-1 overflow-hidden">
           <div className="bg-indigo-600 h-full w-2/3 animate-pulse transition-all"></div>
         </div>
@@ -313,7 +301,7 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
           <div className="w-12 h-12 rounded-full border-3 border-indigo-600 border-t-transparent animate-spin mb-4"></div>
           <h2 className="text-sm font-semibold text-slate-800">
-            Fetching through Gateway...
+            جاري جلب الصفحة عبر البوابة...
           </h2>
           <p className="font-mono text-xs text-slate-400 mt-1 max-w-md truncate" dir="ltr">
             {tab.url}
@@ -337,13 +325,13 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
             <AlertTriangle className="w-6 h-6" />
           </div>
           <h2 className="text-base font-bold text-slate-900 mb-1">
-            Unable to Load Page
+            تعذر تحميل الصفحة
           </h2>
           <p className="text-xs text-slate-500 mb-4 leading-relaxed font-sans">
             {tab.error}
           </p>
 
-          <div className="bg-slate-50 rounded-xl p-3 text-left font-mono text-[11px] text-slate-600 mb-6 break-all border border-slate-100">
+          <div className="bg-slate-50 rounded-xl p-3 text-left font-mono text-[11px] text-slate-600 mb-6 break-all border border-slate-100" dir="ltr">
             {tab.url}
           </div>
 
@@ -352,14 +340,14 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
               onClick={() => onNavigate('sm://home')}
               className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
             >
-              Go to Home
+              الرئيسية
             </button>
             <button
               onClick={onReload}
               className="px-4 py-2 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-colors flex items-center gap-1.5"
             >
               <RotateCw className="w-3.5 h-3.5" />
-              <span>Retry</span>
+              <span>إعادة المحاولة</span>
             </button>
           </div>
         </div>
@@ -371,50 +359,48 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
   return (
     <div className="flex-1 flex flex-col h-full bg-white relative pb-14">
       {/* Tab info strip */}
-      <div className="flex items-center justify-between px-4 py-1.5 bg-slate-50 border-b border-slate-200 text-xs text-slate-600">
+      <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-slate-200 text-xs text-slate-700 shadow-2xs">
         <div className="flex items-center gap-2 min-w-0">
-          {tab.safeMode === 'safe' ? (
-            <span className="flex items-center gap-1 text-emerald-700 font-medium">
-              <Shield className="w-3.5 h-3.5" />
-              Safe Document Mode
-            </span>
+          {tab.favicon ? (
+            <img 
+              src={tab.favicon} 
+              alt="" 
+              className="w-4 h-4 rounded-md object-contain shrink-0" 
+              onError={(e) => {
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
           ) : (
-            <span className="flex items-center gap-1 text-amber-700 font-medium">
-              <ShieldAlert className="w-3.5 h-3.5" />
-              JavaScript Active (Isolated)
-            </span>
+            <Globe className="w-4 h-4 text-slate-500 shrink-0" />
           )}
+          <span className="font-bold text-slate-900 truncate max-w-[200px] sm:max-w-md">
+            {tab.title || tab.url}
+          </span>
           <span className="text-slate-300">·</span>
-          <span className="truncate max-w-[200px] sm:max-w-md font-mono text-[11px]" dir="ltr">
+          <span className="truncate max-w-[150px] sm:max-w-sm font-mono text-[11px] text-slate-400" dir="ltr">
             {tab.url}
           </span>
         </div>
 
-        {/* AI Page Assistant Button */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onOpenAiAssistant}
-            title={t.aiAssistant}
-            className="flex items-center gap-1 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition-colors"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{t.aiAssistant}</span>
-          </button>
-        </div>
+        <button
+          onClick={onOpenInspector}
+          title="فحص في واير شارك وبورب سويت"
+          className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl border border-slate-200 transition-colors font-mono"
+        >
+          <Terminal className="w-3.5 h-3.5 text-indigo-600" />
+          <span>Wireshark & Burp</span>
+        </button>
       </div>
 
-      {/* Sandboxed Iframe Display */}
+      {/* Full Capability Iframe Display */}
       <div className="flex-1 w-full h-full relative overflow-hidden bg-white">
         <iframe
           ref={iframeRef}
           srcDoc={tab.content}
           title={tab.title || 'Web Content'}
-          className="w-full h-full border-none"
-          sandbox={
-            tab.safeMode === 'safe'
-              ? 'allow-same-origin' // Safe mode: allow rendering styled HTML document without active scripts
-              : 'allow-scripts' // Optional JS mode: allow scripts with strictly NO allow-same-origin (origin isolation)
-          }
+          className="w-full h-full border-none bg-white"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals"
         />
       </div>
     </div>

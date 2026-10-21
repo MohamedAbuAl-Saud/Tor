@@ -6,13 +6,13 @@ import {
   Download, 
   Shield, 
   Terminal, 
-  Sparkles, 
   Settings, 
   X, 
   CheckCircle2, 
   EyeOff, 
-  Share2,
-  Globe
+  Camera,
+  Play,
+  Zap
 } from 'lucide-react';
 import { Translations } from '../utils/i18n';
 import { ProfileSettings } from '../types/browser';
@@ -21,16 +21,18 @@ interface QuickMenuProps {
   isOpen: boolean;
   profile: ProfileSettings;
   t: Translations;
+  interceptActive?: boolean;
+  onToggleIntercept?: () => void;
   onNewTab: () => void;
   onOpenBookmarks: () => void;
   onOpenHistory: () => void;
   onOpenDownloads: () => void;
   onOpenPrivacyDashboard: () => void;
   onOpenDevTools: () => void;
-  onOpenAiAssistant: () => void;
   onOpenSettings: () => void;
   onOpenSelfTest: () => void;
   onTogglePrivateMode: () => void;
+  onToggleCameraBlock: () => void;
   onClose: () => void;
 }
 
@@ -38,16 +40,18 @@ export const QuickMenu: React.FC<QuickMenuProps> = ({
   isOpen,
   profile,
   t,
+  interceptActive = false,
+  onToggleIntercept,
   onNewTab,
   onOpenBookmarks,
   onOpenHistory,
   onOpenDownloads,
   onOpenPrivacyDashboard,
   onOpenDevTools,
-  onOpenAiAssistant,
   onOpenSettings,
   onOpenSelfTest,
   onTogglePrivateMode,
+  onToggleCameraBlock,
   onClose,
 }) => {
   if (!isOpen) return null;
@@ -80,7 +84,7 @@ export const QuickMenu: React.FC<QuickMenuProps> = ({
           </button>
         </div>
 
-        {/* Grid of Samsung Internet Style Action Tiles */}
+        {/* Action Tiles */}
         <div className="p-4 grid grid-cols-3 gap-2.5 overflow-y-auto">
           <button
             onClick={() => { onNewTab(); onClose(); }}
@@ -129,41 +133,59 @@ export const QuickMenu: React.FC<QuickMenuProps> = ({
             <div className="p-2 rounded-xl bg-white text-emerald-600 shadow-2xs mb-1.5 group-hover:scale-105 transition-transform">
               <Shield className="w-5 h-5" />
             </div>
-            <span className="text-xs font-semibold text-slate-700">Privacy</span>
+            <span className="text-xs font-semibold text-slate-700">الخصوصية</span>
           </button>
 
           <button
-            onClick={() => { onTogglePrivateMode(); onClose(); }}
+            onClick={() => { onToggleCameraBlock(); onClose(); }}
             className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-colors group ${
-              profile.isPrivateMode
-                ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
-                : 'bg-slate-50 hover:bg-slate-100 border-slate-200/60'
+              profile.cameraBlocked ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-slate-50 border-slate-200/60 text-slate-700'
             }`}
           >
-            <div className="p-2 rounded-xl bg-white text-slate-700 shadow-2xs mb-1.5 group-hover:scale-105 transition-transform">
-              <EyeOff className="w-5 h-5" />
+            <div className="p-2 rounded-xl bg-white text-rose-600 shadow-2xs mb-1.5 group-hover:scale-105 transition-transform">
+              <Camera className="w-5 h-5" />
             </div>
-            <span className="text-xs font-semibold text-slate-700">Secret Mode</span>
-          </button>
-
-          <button
-            onClick={() => { onOpenAiAssistant(); onClose(); }}
-            className="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200/60 transition-colors group"
-          >
-            <div className="p-2 rounded-xl bg-white text-indigo-600 shadow-2xs mb-1.5 group-hover:scale-105 transition-transform">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <span className="text-xs font-semibold text-slate-700">{t.aiAssistant}</span>
+            <span className="text-xs font-semibold">{profile.cameraBlocked ? 'الكاميرا مقفلة' : 'الكاميرا متاحة'}</span>
           </button>
 
           <button
             onClick={() => { onOpenDevTools(); onClose(); }}
             className="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200/60 transition-colors group"
           >
-            <div className="p-2 rounded-xl bg-white text-slate-700 shadow-2xs mb-1.5 group-hover:scale-105 transition-transform">
+            <div className="p-2 rounded-xl bg-white text-indigo-600 shadow-2xs mb-1.5 group-hover:scale-105 transition-transform">
               <Terminal className="w-5 h-5" />
             </div>
-            <span className="text-xs font-semibold text-slate-700">Inspector</span>
+            <span className="text-xs font-semibold text-slate-700">واير شارك</span>
+          </button>
+
+          {onToggleIntercept && (
+            <button
+              onClick={() => { onToggleIntercept(); }}
+              className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-colors group ${
+                interceptActive
+                  ? 'bg-orange-50 border-orange-300 text-orange-700 ring-2 ring-orange-200'
+                  : 'bg-slate-50 hover:bg-slate-100 border-slate-200/60 text-slate-700'
+              }`}
+            >
+              <div className="p-2 rounded-xl bg-white text-orange-600 shadow-2xs mb-1.5 group-hover:scale-105 transition-transform">
+                <Zap className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-semibold">{interceptActive ? 'الاعتراض شغال' : 'اعتراض بورب'}</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => { onTogglePrivateMode(); onClose(); }}
+            className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-colors group ${
+              profile.isPrivateMode
+                ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                : 'bg-slate-50 hover:bg-slate-100 border-slate-200/60 text-slate-700'
+            }`}
+          >
+            <div className="p-2 rounded-xl bg-white text-slate-700 shadow-2xs mb-1.5 group-hover:scale-105 transition-transform">
+              <EyeOff className="w-5 h-5" />
+            </div>
+            <span className="text-xs font-semibold">{t.privateMode}</span>
           </button>
 
           <button
@@ -173,21 +195,21 @@ export const QuickMenu: React.FC<QuickMenuProps> = ({
             <div className="p-2 rounded-xl bg-white text-slate-700 shadow-2xs mb-1.5 group-hover:scale-105 transition-transform">
               <CheckCircle2 className="w-5 h-5" />
             </div>
-            <span className="text-xs font-semibold text-slate-700">Audit Tests</span>
+            <span className="text-xs font-semibold text-slate-700">فحص أمني</span>
           </button>
         </div>
 
-        {/* Bottom Settings Link */}
+        {/* Bottom Full-Page Settings Link */}
         <div className="p-4 bg-slate-50 border-t border-slate-100 mt-auto">
           <button
             onClick={() => { onOpenSettings(); onClose(); }}
-            className="w-full flex items-center justify-between p-3 bg-white rounded-2xl border border-slate-200 hover:border-slate-300 transition-colors text-xs font-bold text-slate-800"
+            className="w-full flex items-center justify-between p-3.5 bg-white rounded-2xl border border-slate-200 hover:border-slate-300 transition-colors text-xs font-bold text-slate-900 shadow-2xs"
           >
-            <div className="flex items-center gap-2">
-              <Settings className="w-4 h-4 text-slate-600" />
-              <span>{t.settings}</span>
+            <div className="flex items-center gap-2.5">
+              <Settings className="w-4 h-4 text-slate-700" />
+              <span>{t.fullPageSettings}</span>
             </div>
-            <span className="text-slate-400 font-normal">{profile.language.toUpperCase()}</span>
+            <span className="text-indigo-600 font-semibold">فتح الصفحة &rarr;</span>
           </button>
         </div>
       </div>
