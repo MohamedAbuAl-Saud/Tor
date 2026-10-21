@@ -1,0 +1,6 @@
+{
+  "name": "SM BROWSER TOR",
+  "description": "Privacy-focused web browsing gateway inspired by Samsung Internet with Tor daemon integration, safe document mode, isolated anonymous profiles, and real download manager.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
