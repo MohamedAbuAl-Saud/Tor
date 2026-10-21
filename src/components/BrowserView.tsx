@@ -357,7 +357,7 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
 
   // Loaded content view
   return (
-    <div className="flex-1 flex flex-col h-full bg-white relative pb-14">
+    <div className="flex-1 flex flex-col h-full bg-white relative">
       {/* Tab info strip */}
       <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-slate-200 text-xs text-slate-700 shadow-2xs">
         <div className="flex items-center gap-2 min-w-0">
@@ -398,7 +398,7 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
           ref={iframeRef}
           srcDoc={tab.content}
           title={tab.title || 'Web Content'}
-          className="w-full h-full border-none bg-white"
+          className="w-full h-full border-none bg-white absolute top-0 left-0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals"
         />
